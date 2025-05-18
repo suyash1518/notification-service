@@ -28,33 +28,46 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-connectDB();
-
-// Debug middleware to log requests
+// Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Request Body:', req.body);
   next();
 });
+
+// Connect to MongoDB
+connectDB();
 
 // Routes
 app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
+  console.log('Health check requested');
   res.status(200).json({ 
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
-// Error handling middleware
+// Global error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({ 
+  console.error('💥 Error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+
+  res.status(err.status || 500).json({ 
     error: 'Something went wrong!',
-    message: err.message
+    message: err.message,
+    path: req.path,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -63,6 +76,8 @@ if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log('Environment:', process.env.NODE_ENV || 'development');
+    console.log('MongoDB Status:', mongoose.connection.readyState === 1 ? 'connected' : 'disconnected');
   });
 }
 

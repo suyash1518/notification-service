@@ -1,11 +1,16 @@
 const { validationResult } = require('express-validator');
 const NotificationService = require('../services/notificationService.js');
+const Notification = require('../models/Notification');
 
 class NotificationController {
   static async createNotification(req, res) {
     try {
-      console.log('Received notification request:', req.body);
-      
+      console.log('Creating notification:', {
+        userId: req.body.userId,
+        type: req.body.type,
+        title: req.body.title
+      });
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         console.log('Validation errors:', errors.array());
@@ -34,13 +39,16 @@ class NotificationController {
           return res.status(400).json({ error: 'Invalid notification type' });
       }
 
-      console.log('Notification created successfully:', notification);
+      console.log('Notification created successfully:', {
+        id: notification._id,
+        type: notification.type
+      });
       res.status(201).json(notification);
     } catch (error) {
       console.error('Error creating notification:', {
-        message: error.message,
+        error: error.message,
         stack: error.stack,
-        name: error.name
+        body: req.body
       });
       res.status(500).json({ 
         error: 'Failed to create notification',
@@ -51,12 +59,26 @@ class NotificationController {
 
   static async getUserNotifications(req, res) {
     try {
-      const { id: userId } = req.params;
-      const notifications = await NotificationService.getUserNotifications(userId);
+      console.log('Fetching notifications for user:', req.params.userId);
+
+      const notifications = await NotificationService.getUserNotifications(req.params.userId);
+      
+      console.log('Found notifications:', {
+        userId: req.params.userId,
+        count: notifications.length
+      });
+
       res.json(notifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      res.status(500).json({ error: 'Failed to fetch notifications' });
+      console.error('Error fetching user notifications:', {
+        error: error.message,
+        stack: error.stack,
+        userId: req.params.userId
+      });
+      res.status(500).json({ 
+        error: 'Failed to fetch notifications',
+        details: error.message 
+      });
     }
   }
 }
