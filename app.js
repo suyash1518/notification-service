@@ -16,31 +16,49 @@ if (!process.env.MONGODB_URI) {
 }
 
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db.js');
-const notificationRoutes = require('./routes/notificationRoutes.js');
+const connectDB = require('./config/db');
+const notificationRoutes = require('./routes/notificationRoutes');
 
+// Initialize express app
 const app = express();
-
-// Connect to MongoDB
-connectDB();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// Connect to MongoDB
+connectDB();
+
 // Routes
-app.use('/api', notificationRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: err.message
+  });
 });
 
-const PORT = process.env.PORT || 3000;
+// Start server only if not in Vercel environment
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV || 'development');
-}); 
+// Export the Express API
+module.exports = app; 
