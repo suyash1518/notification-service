@@ -8,12 +8,21 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/notifications",
+      "methods": ["POST"],
+      "dest": "app.js"
+    },
+    {
+      "src": "/api/notifications/(.*)",
+      "methods": ["GET"],
       "dest": "app.js"
     },
     {
       "src": "/health",
       "dest": "app.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",

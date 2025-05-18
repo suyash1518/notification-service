@@ -15,11 +15,11 @@ const validateNotification = [
 ];
 
 const validateUserId = [
-  param('id').notEmpty().withMessage('User ID is required')
+  param('userId').notEmpty().withMessage('User ID is required')
 ];
 
 // Routes
-router.post('/notifications', validateNotification, NotificationController.createNotification);
-router.get('/users/:id/notifications', validateUserId, NotificationController.getUserNotifications);
+router.post('/', validateNotification, NotificationController.createNotification);
+router.get('/:userId', validateUserId, NotificationController.getUserNotifications);
 
 module.exports = router; 
