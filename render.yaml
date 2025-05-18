@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: notification-service
+    env: node
+    buildCommand: npm install
+    startCommand: node app.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production 

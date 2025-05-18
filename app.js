@@ -24,6 +24,15 @@ const notificationRoutes = require('./routes/notificationRoutes');
 // Initialize express app
 const app = express();
 
+// Security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "default-src 'self'; font-src 'self' data: https:;");
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -37,6 +46,19 @@ app.use((req, res, next) => {
 
 // Connect to MongoDB
 connectDB();
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Notification Service API',
+    version: '1.0.0',
+    endpoints: {
+      createNotification: 'POST /api/notifications',
+      getUserNotifications: 'GET /api/notifications/:userId',
+      health: 'GET /health'
+    }
+  });
+});
 
 // Routes
 app.use('/api/notifications', notificationRoutes);
